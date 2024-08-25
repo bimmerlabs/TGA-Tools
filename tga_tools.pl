@@ -10,13 +10,7 @@ use TgaTools::Model::Debug;
 my $app_config = app->plugin(Config => {file => 'tga_tools.cfg'});
 my $img_config = app->plugin(Config => {file => $app_config->{path}."\\BG\\".$app_config->{in_img}.".cfg"});
 
-# to export original height or width, enter 0.  
-# otherwise, specify a max height/width (smaller than the original image)
-my $img_slice_height = 0;
-my $img_slice_width = 0;
-
 # Open the binary file for reading
-# my $filename = 'B:\SteamLibrary\steamapps\common\Sonic Mania\Data\Data\Stages\UFO1\8bpp\16x16Tiles.tga';
 my $filename   = $app_config->{path}."\\cd\\TEX\\".$app_config->{in_img}.".tga";
 my $exportname = $app_config->{path}."\\".$app_config->{out_img};
 
@@ -41,23 +35,7 @@ if ($app_config->{export_vdp2_pal} == 1) {
 }
 
 if ($app_config->{export_image} == 1) {
-    my ($img) = TgaTools::Model::Tools::read_tga_pixels($filename, $file_size, $unpacked_h, $img_slice_height, $img_slice_width);
-    # # Print the array (optional)
-    # for my $row (0 .. $unpacked_h->{'image_height'} -1) {
-        # for my $col (0 .. $unpacked_h->{'image_width'} -1) {
-            # printf "%02X", unpack('C', $img->[$row][$col]);
-        # }
-        # print "\n";
-    # }
-
-    # # Print the image data in reverse order
-    # print "\nImage Data in Reverse Order:\n";
-    # for (my $row = $unpacked_h->{'image_height'} -1; $row >= 0; $row--) {
-        # for my $col (0 .. $unpacked_h->{'image_width'} -1) {
-            # printf "0x%02X,", unpack('C', $img->[$row][$col]);
-        # }
-        # print "\n";
-    # }
+    my ($img) = TgaTools::Model::Tools::read_tga_pixels($filename, $file_size, $unpacked_h, $app_config->{img_slice_height}, $app_config->{img_slice_width});
     TgaTools::Model::Debug::print_w_x_h ($unpacked_h);
     TgaTools::Model::Tools::save_tga($exportname, $unpacked_h, $color_map, $img);
 }

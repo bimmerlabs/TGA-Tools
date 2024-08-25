@@ -177,6 +177,25 @@ sub read_tga_pixels ($filename, $file_size, $unpacked_h, $row_size = 0, $col_siz
     return (\@img);
 }
 
+sub print_image ($img, $unpacked_h) {
+    # put here temporarily, to be used later
+    # Print the array (optional)
+    for my $row (0 .. $unpacked_h->{'image_height'} -1) {
+        for my $col (0 .. $unpacked_h->{'image_width'} -1) {
+            printf "%02X", unpack('C', $img->[$row][$col]);
+        }
+        print "\n";
+    }
+
+    # Print the image data in reverse order
+    print "\nImage Data in Reverse Order:\n";
+    for (my $row = $unpacked_h->{'image_height'} -1; $row >= 0; $row--) {
+        for my $col (0 .. $unpacked_h->{'image_width'} -1) {
+            printf "0x%02X,", unpack('C', $img->[$row][$col]);
+        }
+        print "\n";
+    }
+}
 
 
 1;
