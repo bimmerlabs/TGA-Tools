@@ -36,6 +36,10 @@ sub rgb_palette ($color_map_entries, $path, $in_img, $config) {
 	    # if $num_entries is not specified, use entire palette
 	    $num_entries = scalar(@$color_map_entries) if $num_entries == 0;
 	    $num_entries--;
+	    
+	    print $out_fh "// ".lc($in_img).".h\n";
+	    print $out_fh "#ifndef ".uc($in_img)."_H\n";
+	    print $out_fh "#define ".uc($in_img)."_H\n";
 
 	    print $out_fh "#include \"palette_config.h\"\n\n";
 	    
@@ -101,6 +105,17 @@ sub rgb_palette ($color_map_entries, $path, $in_img, $config) {
 	    print $out_fh "    }\n";
 	    print $out_fh "};\n\n";
 	    
+	    if ($config->{image}{normal_map} == 1) {
+		print $out_fh "const Bool normal_map_mode = true; // false = HSL background, true = Normal mapping\n\n";
+	    }
+	    else {
+		print $out_fh "const Bool normal_map_mode = false; // false = HSL background, true = Normal mapping\n\n";
+	    }
+		
+	    print $out_fh "ImageConfig image = {\n";
+	    print $out_fh "    $config->{image}{hue}, $config->{image}{sat}, $config->{image}{lum}, $config->{image}{darkness}, toFIXED($config->{image}{x_pos}), toFIXED($config->{image}{y_pos}), toFIXED($config->{image}{scroll_rate})\n";
+	    print $out_fh "};\n\n";	    
+		
 	    print $out_fh "static jo_palette bg_palette;\n\n";
 
 	    print $out_fh "jo_palette	*my_bg_palette_handling(void)\n";
@@ -115,8 +130,13 @@ sub rgb_palette ($color_map_entries, $path, $in_img, $config) {
 	    print $out_fh "    img.data = JO_NULL;\n";
 	    print $out_fh "    jo_tga_8bits_loader(&img, \"TEX\", \"".uc($in_img).".TGA\", 0);\n";
 	    print $out_fh "    jo_vdp2_set_nbg1_8bits_image(&img, bg_palette.id, false);\n";
-	    print $out_fh "    jo_free_img(&img);\n";
-	    print $out_fh "}\n";
+	    print $out_fh "    jo_free_img(&img);\n\n";
+	    
+
+	    print $out_fh "    slScrPosNbg1(toFIXED($config->{image}{x_pos}), toFIXED($config->{image}{y_pos}));\n";
+	    print $out_fh "    slZoomNbg1(toFIXED($config->{image}{x_scale}), toFIXED($config->{image}{y_scale}));\n";
+	    print $out_fh "}\n\n";
+	    print $out_fh "#endif // ".uc($in_img)."_H\n";
 
     close($out_fh);
     print "Background exported to $filename\n";
@@ -130,13 +150,24 @@ sub rgb_palette ($color_map_entries, $path, $in_img, $config) {
 
 	    print $out_fh "#define NUM_PALETTE_ENTRIES $num_entries\n";
 	    print $out_fh "#define NUM_PALETTE_GROUPS ".($config->{palette_groups}+1)."\n\n";
+	    
+	    
+	    print $out_fh "typedef struct {\n";
+	    print $out_fh "    Uint8 hue;\n";
+	    print $out_fh "    Uint8 sat;\n";
+	    print $out_fh "    Uint8 lum;\n";
+	    print $out_fh "    Uint8 darkness;\n";
+	    print $out_fh "    FIXED x_pos;\n";
+	    print $out_fh "    FIXED y_pos;\n";
+	    print $out_fh "    FIXED scroll_rate;\n";
+	    print $out_fh "} ImageConfig;\n\n";
 
 	    print $out_fh "#endif // PALETTE_CONFIG_H\n";
 
     close($out_fh);
     print "Header exported to $filename\n";
     
-    # generate palette_config.h here
+    # generate background.h here
     $filename = "$path\\background.h";
     open($out_fh, '>', $filename) or die "Can't open $filename: $!";
 	    print $out_fh "// background.h\n";
