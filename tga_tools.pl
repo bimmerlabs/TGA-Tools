@@ -1,5 +1,6 @@
 #!/usr/bin/env perl
 use Mojolicious::Lite -signatures;
+use Mojo::Util qw(getopt);
 use FindBin;
 use lib "$FindBin::Bin/lib";
 use TgaTools::Model::Tools;
@@ -8,11 +9,24 @@ use TgaTools::Model::SGL;
 use TgaTools::Model::Debug;
 
 my $app_config = app->plugin(Config => {file => 'tga_tools.cfg'});
-my $img_config = app->plugin(Config => {file => $app_config->{path}."\\BG\\".$app_config->{in_img}.".cfg"});
+my $project_path = $app_config->{path};
+my $in_img = $app_config->{in_img};
+my $out_img= $app_config->{out_img};
+
+# use command line to override defaults from config file
+getopt 
+    'p|path=s' => \$project_path,
+    'in|in_image=s' => \$in_img,
+    'out|out_img=s' => \$out_img;
+
+my $img_config = app->plugin(Config => {file => $project_path."\\BG\\$in_img.cfg"});
+
+say $app_config->{path};
+say $project_path;
 
 # Open the binary file for reading
-my $filename   = $app_config->{path}."\\cd\\TEX\\".$app_config->{in_img}.".tga";
-my $exportname = $app_config->{path}."\\".$app_config->{out_img};
+my $filename   = $project_path."\\cd\\TEX\\$in_img.tga";
+my $exportname = $project_path."\\".$out_img;
 
 
 my ($file_size, $header) = TgaTools::Model::Tools::open_tga($filename);
@@ -26,12 +40,12 @@ if ($app_config->{debug} == 1) {
 
 if ($app_config->{export_rgb_pal} == 1) {
     my ($color_map_entries_rgb) = TgaTools::Model::Tools::get_color_map_rgb24($color_map, $color_map_size);
-    TgaTools::Model::SGL::rgb_palette ($color_map_entries_rgb, $app_config->{path}, $app_config->{in_img}, $img_config); # needed for rgb_palette
+    TgaTools::Model::SGL::rgb_palette ($color_map_entries_rgb, $project_path, $in_img, $img_config); # needed for rgb_palette
 }
 
 if ($app_config->{export_vdp2_pal} == 1) {
     my ($color_map_entries_vdp2) = TgaTools::Model::Tools::get_color_map_rgb15($color_map, $color_map_size);
-    TgaTools::Model::SGL::vdp2_palette ($color_map_entries_vdp2, $app_config->{path}, $app_config->{in_img}); # doesn't work with RGB palette
+    TgaTools::Model::SGL::vdp2_palette ($color_map_entries_vdp2, $project_path, $in_img); # doesn't work with RGB palette
 }
 
 if ($app_config->{export_image} == 1) {

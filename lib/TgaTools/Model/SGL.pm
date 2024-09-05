@@ -48,24 +48,6 @@ sub rgb_palette ($color_map_entries, $path, $in_img, $config) {
 	    for my $index (0..$num_entries) {
 		my ($r, $g, $b) = @{$color_map_entries->[$index]};
 		print $out_fh "{$r, $g, $b}";
-
-		if ($index != $num_entries) {
-		    print $out_fh ", ";
-		}
-
-		if (($index + 1) % $columns_per_row == 0 && $index != $num_entries) {
-		    print $out_fh "\n      ";
-		}
-	    }
-	    
-	    print $out_fh " }\n";
-	    print $out_fh "};\n\n";
-	    
-	    print $out_fh "RgbPalette originalPal = {\n";
-	    print $out_fh "    { ";
-	    for my $index (0..$num_entries) {
-		my ($r, $g, $b) = @{$color_map_entries->[$index]};
-		print $out_fh "{$r, $g, $b}";
 		if ($index != $num_entries) {
 		    print $out_fh ", ";
 		}
@@ -125,16 +107,22 @@ sub rgb_palette ($color_map_entries, $path, $in_img, $config) {
 	    print $out_fh "}\n\n";
 
 	    print $out_fh "void init_background(void) {\n";
-	    print $out_fh "    jo_img_8bits    img;\n";
-	    print $out_fh "    jo_set_tga_palette_handling(my_bg_palette_handling);\n";
-	    print $out_fh "    img.data = JO_NULL;\n";
-	    print $out_fh "    jo_tga_8bits_loader(&img, \"TEX\", \"".uc($in_img).".TGA\", 0);\n";
-	    print $out_fh "    jo_vdp2_set_nbg1_8bits_image(&img, bg_palette.id, false);\n";
-	    print $out_fh "    jo_free_img(&img);\n\n";
-	    
+	    if ($config->{image}{is_sprite} == 1) {
+		print $out_fh "    jo_set_tga_palette_handling(my_bg_palette_handling);\n";
+		print $out_fh "    jo_sprite_add_tga(\"TEX\", \"".uc($in_img).".TGA\", ".($config->{image}{transparent_index}+1).");\n";
+	    }
+	    else {
+		print $out_fh "    jo_img_8bits    img;\n";
+		print $out_fh "    jo_set_tga_palette_handling(my_bg_palette_handling);\n";
+		print $out_fh "    img.data = JO_NULL;\n";
+		print $out_fh "    jo_tga_8bits_loader(&img, \"TEX\", \"".uc($in_img).".TGA\", 0);\n";
+		print $out_fh "    jo_vdp2_set_nbg1_8bits_image(&img, bg_palette.id, false);\n";
+		print $out_fh "    jo_free_img(&img);\n\n";
+		
 
-	    print $out_fh "    slScrPosNbg1(toFIXED($config->{image}{x_pos}), toFIXED($config->{image}{y_pos}));\n";
-	    print $out_fh "    slZoomNbg1(toFIXED($config->{image}{x_scale}), toFIXED($config->{image}{y_scale}));\n";
+		print $out_fh "    slScrPosNbg1(toFIXED($config->{image}{x_pos}), toFIXED($config->{image}{y_pos}));\n";
+		print $out_fh "    slZoomNbg1(toFIXED($config->{image}{x_scale}), toFIXED($config->{image}{y_scale}));\n";
+	    }
 	    print $out_fh "}\n\n";
 	    print $out_fh "#endif // ".uc($in_img)."_H\n";
 
