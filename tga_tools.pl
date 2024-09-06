@@ -19,7 +19,7 @@ getopt
     'in|in_image=s' => \$in_img,
     'out|out_img=s' => \$out_img;
 
-my $img_config = app->plugin(Config => {file => $project_path."\\BG\\$in_img.cfg"});
+my $img_config = app->plugin(Config => {file => $project_path."\\BG_CFG\\$in_img.cfg"});
 
 say $app_config->{path};
 say $project_path;
